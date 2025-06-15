@@ -38,7 +38,7 @@ class BookRow extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => PDFViewerScreen(filePath: book.filePath),
+                        builder: (_) => PDFViewerScreen(bookDetail: book),
                       ),
                     );
                   } else {
