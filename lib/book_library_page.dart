@@ -2,8 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
+
 import 'book_row.dart';
 import 'models/book.dart';
+import 'providers/book_provider.dart';
 
 class BookLibraryPage extends StatefulWidget {
   const BookLibraryPage({super.key});
@@ -14,61 +17,15 @@ class BookLibraryPage extends StatefulWidget {
 
 class _BookLibraryPageState extends State<BookLibraryPage> {
 
-  // A list that contains both default books and newly uploaded PDFs
-  final List<Book> _books = [
-    Book()
-      ..coverTitle = 'Pride\nCover'
-      ..title = 'Pride and Prejudice'
-      ..author = 'Jane Austen'
-      ..progress = 0.4,
-    Book()
-      ..coverTitle = 'Moby\nCover'
-      ..title = 'Moby-Dick'
-      ..author = 'Herman Melville'
-      ..progress = 0.33,
-    Book()
-      ..coverTitle = 'Gatsby\nCover'
-      ..title = 'The Great Gatsby'
-      ..author = 'F. Scott Fitzgerald'
-      ..progress = 0.33,
-    Book()
-      ..coverTitle = 'Mock-\nCover'
-      ..title = 'To Kill a Mockingbird'
-      ..author = 'Harper Lee'
-      ..progress = 0.33
-  ];
-
   @override
   void initState() {
     super.initState();
-
-    loadInitialBooks();
-  }
-
-  void loadInitialBooks() async {
-    final Directory dir = await getApplicationDocumentsDirectory();
-
-    final List<Book> pdfFiles = [];
-    // List all files and filter by .pdf extension
-    final List<FileSystemEntity> files = dir.listSync(recursive: true)
-        .where((file) => file.path.toLowerCase().endsWith('.pdf'))
-        .toList();
-
-    for (final file in files) {
-
-      pdfFiles.add(Book()
-        ..coverTitle = file.uri.pathSegments.last
-        ..title = file.uri.pathSegments.last
-        ..author = "IDK"
-        ..progress = 0.0
-        ..filePath = file.path
-      );
-    }
-
-    setState(() {
-      _books.addAll(pdfFiles);
+    // Load books from the database when the page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BookProvider>().loadBooks();
     });
   }
+
 
   /// Picks a PDF, saves it internally, and adds it to the books list
   Future<void> _pickAndSavePdf() async {
@@ -104,10 +61,8 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
           ..filePath = newFilePath
           ..progress = 0.0;
 
-        setState(() {
-          _books.add(newBook);
-          print('Book added: $newBook');
-        });
+        await context.read<BookProvider>().addBook(newBook);
+        print('Book added: $newBook');
 
         // Display a quick notification
         ScaffoldMessenger.of(context).showSnackBar(
@@ -145,8 +100,9 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
               ),
               const SizedBox(height: 8),
 
-              // Render the list of books, including newly added PDFs
-              for (final book in _books) BookRow(book: book),
+              // Render the list of books from the provider
+              for (final book in context.watch<BookProvider>().books)
+                BookRow(book: book),
             ],
           ),
         ),

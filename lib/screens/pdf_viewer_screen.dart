@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:kindle_clone_v2/models/book.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
 class PDFViewerScreen extends StatefulWidget {
-  final String filePath; // Can also be a URL
+  final Book bookDetail; // Can also be a URL
 
-  PDFViewerScreen({required this.filePath});
+  PDFViewerScreen({required this.bookDetail});
 
   @override
   _PDFViewerScreenState createState() => _PDFViewerScreenState();
@@ -25,7 +26,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("PDF Viewer"),
+        title: Text(widget.bookDetail.title),
         actions: [
           IconButton(
             icon: Icon(Icons.bookmark),
@@ -36,7 +37,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
         ],
       ),
       body: SfPdfViewer.file(
-        File(widget.filePath),
+        File(widget.bookDetail.filePath),
         controller: _pdfViewerController,
         enableTextSelection: true,
         canShowScrollStatus: true,
