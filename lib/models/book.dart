@@ -15,7 +15,7 @@ class Book {
   late String coverTitle;
   late String author;
   late double progress;
-  late String filePath;
+  String filePath = '';
 
   // One-to-many relationships
   final highlights = IsarLinks<Highlight>();
