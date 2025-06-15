@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/book.dart';
 import '../models/highlight.dart';
 import '../models/thought.dart';
+import '../models/book_annotation.dart';
 
 class BookRepository {
   BookRepository._();
@@ -22,10 +23,12 @@ class BookRepository {
 
   Future<Isar> _initDb() async {
     final Directory dir = await getApplicationDocumentsDirectory();
-    return Isar.open(
-      [BookSchema, HighlightSchema, ThoughtSchema],
-      directory: dir.path,
-    );
+    return Isar.open([
+      BookSchema,
+      HighlightSchema,
+      ThoughtSchema,
+      BookAnnotationSchema,
+    ], directory: dir.path);
   }
 
   /// Fetch all books stored in the database.
@@ -41,5 +44,26 @@ class BookRepository {
       await isar.books.put(book);
     });
   }
-}
 
+  /// Persist a new annotation for the given [book].
+  Future<void> addAnnotation(Book book, BookAnnotation annotation) async {
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      annotation.book.value = book;
+      await isar.bookAnnotations.put(annotation);
+      await annotation.book.save();
+      book.annotations.add(annotation);
+      await book.annotations.save();
+    });
+  }
+
+  /// Get annotations associated with [book].
+  Future<List<BookAnnotation>> getAnnotations(Book book) async {
+    final isar = await _isar;
+    if (book.id == null) return [];
+    return isar.bookAnnotations
+        .filter()
+        .book((q) => q.idEqualTo(book.id!))
+        .findAll();
+  }
+}
