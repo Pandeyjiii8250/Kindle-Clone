@@ -5,27 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'book_row.dart';
 import 'models/book.dart';
 
-/// Represents a book/PDF item in the library.
-class BookModel {
-  final String coverTitle;
-  final String title;
-  final String author;
-  final String? progressText;
-  final double? progressValue;
-  final String? highlightsNotes;
-  final String? filePath; // If this book is loaded from a PDF file.
-
-  BookModel({
-    required this.coverTitle,
-    required this.title,
-    required this.author,
-    this.progressText,
-    this.progressValue,
-    this.highlightsNotes,
-    this.filePath,
-  });
-}
-
 class BookLibraryPage extends StatefulWidget {
   const BookLibraryPage({super.key});
 
@@ -76,13 +55,13 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
         .toList();
 
     for (final file in files) {
-      final stat = await File(file.path).stat();
 
       pdfFiles.add(Book()
         ..coverTitle = file.uri.pathSegments.last
         ..title = file.uri.pathSegments.last
         ..author = "IDK"
         ..progress = 0.0
+        ..filePath = file.path
       );
     }
 
@@ -117,7 +96,7 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
         // Write file to the app's documents directory
         await file.writeAsBytes(fileBytes);
 
-        // Once saved, create a new BookModel for it
+        // Once saved, create a new Book for it
         final newBook = Book()
           ..coverTitle = 'PDF'
           ..title = fileName

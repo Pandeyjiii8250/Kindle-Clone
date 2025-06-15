@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
+import 'package:kindle_clone_v2/screens/pdf_viewer_screen.dart';
 
 class BookRow extends StatelessWidget {
   final Book book;
@@ -31,26 +32,35 @@ class BookRow extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    book.title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PDFViewerScreen(filePath: book.filePath),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    book.author,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      book.title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  if (!book.progress.isNaN) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
+                    Text(
+                      book.author,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    if (!book.progress.isNaN) ...[
+                      const SizedBox(height: 8),
                       Text(
                         book.progress.toString(),
                         style: const TextStyle(
@@ -58,28 +68,29 @@ class BookRow extends StatelessWidget {
                           color: Colors.black54,
                         ),
                       ),
-                    const SizedBox(height: 4),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: book.progress,
-                        minHeight: 4,
-                        backgroundColor: Colors.grey.shade300,
-                        color: Colors.grey.shade700,
+                      const SizedBox(height: 4),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: book.progress,
+                          minHeight: 4,
+                          backgroundColor: Colors.grey.shade300,
+                          color: Colors.grey.shade700,
+                        ),
                       ),
-                    ),
-                  ],
-                  if (book.highlights.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      book.highlights.length.toString(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black54,
+                    ],
+                    if (book.highlights.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        book.highlights.length.toString(),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black54,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
@@ -91,4 +102,4 @@ class BookRow extends StatelessWidget {
       ],
     );
   }
-} 
+}
