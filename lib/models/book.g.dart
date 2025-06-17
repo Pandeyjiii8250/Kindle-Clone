@@ -75,12 +75,6 @@ const BookSchema = CollectionSchema(
       name: r'thoughts',
       target: r'Thought',
       single: false,
-    ),
-    r'annotations': LinkSchema(
-      id: -4723876701341286283,
-      name: r'annotations',
-      target: r'BookAnnotation',
-      single: false,
     )
   },
   embeddedSchemas: {},
@@ -159,7 +153,7 @@ Id _bookGetId(Book object) {
 }
 
 List<IsarLinkBase<dynamic>> _bookGetLinks(Book object) {
-  return [object.highlights, object.thoughts, object.annotations];
+  return [object.highlights, object.thoughts];
 }
 
 void _bookAttach(IsarCollection<dynamic> col, Id id, Book object) {
@@ -167,8 +161,6 @@ void _bookAttach(IsarCollection<dynamic> col, Id id, Book object) {
   object.highlights
       .attach(col, col.isar.collection<Highlight>(), r'highlights', id);
   object.thoughts.attach(col, col.isar.collection<Thought>(), r'thoughts', id);
-  object.annotations
-      .attach(col, col.isar.collection<BookAnnotation>(), r'annotations', id);
 }
 
 extension BookQueryWhereSort on QueryBuilder<Book, Book, QWhere> {
@@ -1048,62 +1040,6 @@ extension BookQueryLinks on QueryBuilder<Book, Book, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
           r'thoughts', lower, includeLower, upper, includeUpper);
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotations(
-      FilterQuery<BookAnnotation> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'annotations');
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotationsLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'annotations', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotationsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'annotations', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotationsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'annotations', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotationsLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'annotations', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotationsLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'annotations', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Book, Book, QAfterFilterCondition> annotationsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'annotations', lower, includeLower, upper, includeUpper);
     });
   }
 }

@@ -6,7 +6,6 @@ import 'package:path_provider/path_provider.dart';
 import '../models/book.dart';
 import '../models/highlight.dart';
 import '../models/thought.dart';
-import '../models/book_annotation.dart';
 
 class BookRepository {
   BookRepository._();
@@ -27,7 +26,6 @@ class BookRepository {
       BookSchema,
       HighlightSchema,
       ThoughtSchema,
-      BookAnnotationSchema,
     ], directory: dir.path);
   }
 
@@ -45,23 +43,23 @@ class BookRepository {
     });
   }
 
-  /// Persist a new annotation for the given [book].
-  Future<void> addAnnotation(Book book, BookAnnotation annotation) async {
+  /// Persist a new highlight annotation for the given [book].
+  Future<void> addHighlight(Book book, Highlight highlight) async {
     final isar = await _isar;
     await isar.writeTxn(() async {
-      annotation.book.value = book;
-      await isar.bookAnnotations.put(annotation);
-      await annotation.book.save();
-      book.annotations.add(annotation);
-      await book.annotations.save();
+      highlight.book.value = book;
+      await isar.highlights.put(highlight);
+      await highlight.book.save();
+      book.highlights.add(highlight);
+      await book.highlights.save();
     });
   }
 
-  /// Get annotations associated with [book].
-  Future<List<BookAnnotation>> getAnnotations(Book book) async {
+  /// Get highlight annotations associated with [book].
+  Future<List<Highlight>> getHighlights(Book book) async {
     final isar = await _isar;
     if (book.id == null) return [];
-    return isar.bookAnnotations
+    return isar.highlights
         .filter()
         .book((q) => q.idEqualTo(book.id!))
         .findAll();

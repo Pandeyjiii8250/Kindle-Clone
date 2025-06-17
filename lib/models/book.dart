@@ -2,7 +2,6 @@
 import 'package:isar/isar.dart';
 import 'highlight.dart';
 import 'thought.dart';
-import 'book_annotation.dart';
 
 part 'book.g.dart';
 
@@ -21,5 +20,4 @@ class Book {
   // One-to-many relationships
   final highlights = IsarLinks<Highlight>();
   final thoughts = IsarLinks<Thought>();
-  final annotations = IsarLinks<BookAnnotation>();
 }

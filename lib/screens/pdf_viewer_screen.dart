@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
-import 'package:kindle_clone_v2/models/book_annotation.dart';
+import 'package:kindle_clone_v2/models/highlight.dart';
 import 'package:kindle_clone_v2/repositories/book_repository.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:syncfusion_flutter_pdfviewer/src/annotation/annotation.dart';
@@ -19,7 +19,7 @@ class PDFViewerScreen extends StatefulWidget {
 class _PDFViewerScreenState extends State<PDFViewerScreen> {
   late PdfViewerController _pdfViewerController;
   final BookRepository _repository = BookRepository.instance;
-  List<BookAnnotation> _annotations = [];
+  List<Highlight> _highlights = [];
 
   @override
   void initState() {
@@ -29,13 +29,13 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   }
 
   Future<void> _loadAnnotations() async {
-    _annotations = await _repository.getAnnotations(widget.bookDetail);
-    for (final ann in _annotations) {
-      _addAnnotationToViewer(ann);
+    _highlights = await _repository.getHighlights(widget.bookDetail);
+    for (final highlight in _highlights) {
+      _addAnnotationToViewer(highlight);
     }
   }
 
-  void _addAnnotationToViewer(BookAnnotation ann) {
+  void _addAnnotationToViewer(Highlight ann) {
     Annotation? annotation;
     if (ann.rects.length >= 4) {
       final Rect rect = Rect.fromLTWH(
@@ -46,7 +46,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
       );
       final PdfTextLine line = PdfTextLine(
         rect,
-        ann.content ?? '',
+        ann.highlightText,
         ann.pageNumber,
       );
       if (ann.type == 'HighlightAnnotation') {
@@ -60,7 +60,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
       } else if (ann.type == 'StickyNoteAnnotation') {
         annotation = StickyNoteAnnotation(
           pageNumber: ann.pageNumber,
-          text: ann.content ?? '',
+          text: ann.highlightText,
           position: rect.topLeft,
           icon: PdfStickyNoteIcon.note,
         );
@@ -84,18 +84,17 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
     final Rect r = annotation.boundingBox;
     rects.addAll([r.left, r.top, r.width, r.height]);
 
-    final ann =
-        BookAnnotation()
-          ..pageNumber = annotation.pageNumber
-          ..type = annotation.runtimeType.toString()
-          ..rects = rects
-          ..content =
-              annotation is StickyNoteAnnotation ? annotation.text : null
-          ..color =
-              '#${annotation.color.value.toRadixString(16).padLeft(8, '0')}'
-          ..createdAt = DateTime.now();
+    final ann = Highlight()
+      ..pageNumber = annotation.pageNumber
+      ..type = annotation.runtimeType.toString()
+      ..rects = rects
+      ..highlightText =
+          annotation is StickyNoteAnnotation ? annotation.text : ''
+      ..color =
+          '#${annotation.color.value.toRadixString(16).padLeft(8, '0')}'
+      ..timestamp = DateTime.now();
 
-    await _repository.addAnnotation(widget.bookDetail, ann);
+    await _repository.addHighlight(widget.bookDetail, ann);
   }
 
   @override
