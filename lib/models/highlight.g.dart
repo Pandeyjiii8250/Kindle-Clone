@@ -37,10 +37,20 @@ const HighlightSchema = CollectionSchema(
       name: r'pageNumber',
       type: IsarType.long,
     ),
-    r'timestamp': PropertySchema(
+    r'rects': PropertySchema(
       id: 4,
+      name: r'rects',
+      type: IsarType.doubleList,
+    ),
+    r'timestamp': PropertySchema(
+      id: 5,
       name: r'timestamp',
       type: IsarType.dateTime,
+    ),
+    r'type': PropertySchema(
+      id: 6,
+      name: r'type',
+      type: IsarType.string,
     )
   },
   estimateSize: _highlightEstimateSize,
@@ -79,6 +89,8 @@ int _highlightEstimateSize(
       bytesCount += value.length * 3;
     }
   }
+  bytesCount += 3 + object.rects.length * 8;
+  bytesCount += 3 + object.type.length * 3;
   return bytesCount;
 }
 
@@ -92,7 +104,9 @@ void _highlightSerialize(
   writer.writeString(offsets[1], object.highlightText);
   writer.writeStringList(offsets[2], object.notes);
   writer.writeLong(offsets[3], object.pageNumber);
-  writer.writeDateTime(offsets[4], object.timestamp);
+  writer.writeDoubleList(offsets[4], object.rects);
+  writer.writeDateTime(offsets[5], object.timestamp);
+  writer.writeString(offsets[6], object.type);
 }
 
 Highlight _highlightDeserialize(
@@ -107,7 +121,9 @@ Highlight _highlightDeserialize(
   object.id = id;
   object.notes = reader.readStringList(offsets[2]) ?? [];
   object.pageNumber = reader.readLong(offsets[3]);
-  object.timestamp = reader.readDateTime(offsets[4]);
+  object.rects = reader.readDoubleList(offsets[4]) ?? [];
+  object.timestamp = reader.readDateTime(offsets[5]);
+  object.type = reader.readString(offsets[6]);
   return object;
 }
 
@@ -127,7 +143,11 @@ P _highlightDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
+      return (reader.readDoubleList(offset) ?? []) as P;
+    case 5:
       return (reader.readDateTime(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -834,6 +854,155 @@ extension HighlightQueryFilter
     });
   }
 
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsElementEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'rects',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition>
+      rectsElementGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'rects',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition>
+      rectsElementLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'rects',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsElementBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'rects',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition>
+      rectsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<Highlight, Highlight, QAfterFilterCondition> timestampEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -884,6 +1053,136 @@ extension HighlightQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'type',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeContains(
+      String value,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'type',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'type',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'type',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> typeIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'type',
+        value: '',
       ));
     });
   }
@@ -956,6 +1255,18 @@ extension HighlightQuerySortBy on QueryBuilder<Highlight, Highlight, QSortBy> {
       return query.addSortBy(r'timestamp', Sort.desc);
     });
   }
+
+  QueryBuilder<Highlight, Highlight, QAfterSortBy> sortByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterSortBy> sortByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
 }
 
 extension HighlightQuerySortThenBy
@@ -1019,6 +1330,18 @@ extension HighlightQuerySortThenBy
       return query.addSortBy(r'timestamp', Sort.desc);
     });
   }
+
+  QueryBuilder<Highlight, Highlight, QAfterSortBy> thenByType() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterSortBy> thenByTypeDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'type', Sort.desc);
+    });
+  }
 }
 
 extension HighlightQueryWhereDistinct
@@ -1050,9 +1373,22 @@ extension HighlightQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Highlight, Highlight, QDistinct> distinctByRects() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'rects');
+    });
+  }
+
   QueryBuilder<Highlight, Highlight, QDistinct> distinctByTimestamp() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'timestamp');
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QDistinct> distinctByType(
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'type', caseSensitive: caseSensitive);
     });
   }
 }
@@ -1089,9 +1425,21 @@ extension HighlightQueryProperty
     });
   }
 
+  QueryBuilder<Highlight, List<double>, QQueryOperations> rectsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'rects');
+    });
+  }
+
   QueryBuilder<Highlight, DateTime, QQueryOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timestamp');
+    });
+  }
+
+  QueryBuilder<Highlight, String, QQueryOperations> typeProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'type');
     });
   }
 }

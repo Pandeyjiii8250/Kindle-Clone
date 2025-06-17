@@ -22,10 +22,11 @@ class BookRepository {
 
   Future<Isar> _initDb() async {
     final Directory dir = await getApplicationDocumentsDirectory();
-    return Isar.open(
-      [BookSchema, HighlightSchema, ThoughtSchema],
-      directory: dir.path,
-    );
+    return Isar.open([
+      BookSchema,
+      HighlightSchema,
+      ThoughtSchema,
+    ], directory: dir.path);
   }
 
   /// Fetch all books stored in the database.
@@ -41,5 +42,26 @@ class BookRepository {
       await isar.books.put(book);
     });
   }
-}
 
+  /// Persist a new highlight annotation for the given [book].
+  Future<void> addHighlight(Book book, Highlight highlight) async {
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      highlight.book.value = book;
+      await isar.highlights.put(highlight);
+      await highlight.book.save();
+      book.highlights.add(highlight);
+      await book.highlights.save();
+    });
+  }
+
+  /// Get highlight annotations associated with [book].
+  Future<List<Highlight>> getHighlights(Book book) async {
+    final isar = await _isar;
+    if (book.id == null) return [];
+    return isar.highlights
+        .filter()
+        .book((q) => q.idEqualTo(book.id!))
+        .findAll();
+  }
+}
