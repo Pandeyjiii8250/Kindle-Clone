@@ -1,11 +1,49 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:pdf_render/pdf_render.dart';
 
-class BookRow extends StatelessWidget {
+class BookRow extends StatefulWidget {
   final Book book;
 
   const BookRow({super.key, required this.book});
+
+  @override
+  State<BookRow> createState() => _BookRowState();
+}
+
+class _BookRowState extends State<BookRow> {
+  Uint8List? _coverBytes;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCover();
+  }
+
+  Future<void> _loadCover() async {
+    if (widget.book.filePath.isEmpty) return;
+    try {
+      final doc = await PdfDocument.openFile(widget.book.filePath);
+      final page = await doc.getPage(1);
+      final pageImage = await page.render(
+        width: page.width,
+        height: page.height,
+        format: PdfPageImageFormat.png,
+      );
+      await page.close();
+      await doc.close();
+      if (mounted) {
+        setState(() {
+          _coverBytes = pageImage.bytes;
+        });
+      }
+    } catch (_) {
+      // Ignore errors and keep default placeholder
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +53,6 @@ class BookRow extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Placeholder "cover" box; swap for an actual image if you prefer
             Container(
               width: 48,
               height: 72,
@@ -24,24 +61,31 @@ class BookRow extends StatelessWidget {
                 color: Colors.grey.shade300,
               ),
               alignment: Alignment.center,
-              child: Text(
-                book.coverTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10, color: Colors.black54),
-              ),
+              clipBehavior: Clip.hardEdge,
+              child: _coverBytes != null
+                  ? Image.memory(
+                      _coverBytes!,
+                      fit: BoxFit.cover,
+                    )
+                  : Text(
+                      widget.book.coverTitle,
+                      textAlign: TextAlign.center,
+                      style:
+                          const TextStyle(fontSize: 10, color: Colors.black54),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (book.filePath.isNotEmpty) {
+                  if (widget.book.filePath.isNotEmpty) {
                     // Navigator.push(
                     //   context,
                     //   MaterialPageRoute(
                     //     builder: (_) => PDFViewerScreen(bookDetail: book),
                     //   ),
                     // );
-                    OpenFilex.open(book.filePath);
+                    OpenFilex.open(widget.book.filePath);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
@@ -54,7 +98,7 @@ class BookRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      book.title,
+                      widget.book.title,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -62,16 +106,16 @@ class BookRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      book.author,
+                      widget.book.author,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.black54,
                       ),
                     ),
-                    if (!book.progress.isNaN) ...[
+                    if (!widget.book.progress.isNaN) ...[
                       const SizedBox(height: 8),
                       Text(
-                        book.progress.toString(),
+                        widget.book.progress.toString(),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
@@ -81,17 +125,17 @@ class BookRow extends StatelessWidget {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
-                          value: book.progress,
+                          value: widget.book.progress,
                           minHeight: 4,
                           backgroundColor: Colors.grey.shade300,
                           color: Colors.grey.shade700,
                         ),
                       ),
                     ],
-                    if (book.highlights.isNotEmpty) ...[
+                    if (widget.book.highlights.isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
-                        book.highlights.length.toString(),
+                        widget.book.highlights.length.toString(),
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
