@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
-import 'package:open_filex/open_filex.dart';
+import 'package:kindle_clone_v2/screens/pdf_viewer_screen.dart';
 
 class BookRow extends StatelessWidget {
   final Book book;
@@ -35,13 +35,13 @@ class BookRow extends StatelessWidget {
               child: GestureDetector(
                 onTap: () {
                   if (book.filePath.isNotEmpty) {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (_) => PDFViewerScreen(bookDetail: book),
-                    //   ),
-                    // );
-                    OpenFilex.open(book.filePath);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PDFViewerScreen(bookDetail: book),
+                      ),
+                    );
+                    // OpenFilex.open(book.filePath);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
