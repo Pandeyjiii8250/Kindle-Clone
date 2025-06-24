@@ -41,5 +41,30 @@ class BookRepository {
       await isar.books.put(book);
     });
   }
+
+  /// Add [highlight] for the given [book].
+  Future<void> addHighlight(Book book, Highlight highlight) async {
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      highlight.book.value = book;
+      await isar.highlights.put(highlight);
+      await highlight.book.save();
+    });
+  }
+
+  /// Retrieve all highlights belonging to [book].
+  Future<List<Highlight>> getHighlightsForBook(Book book) async {
+    final isar = await _isar;
+    if (book.id == null) return [];
+    return isar.highlights.filter().book((q) => q.idEqualTo(book.id!)).findAll();
+  }
+
+  /// Delete the given [highlight].
+  Future<void> deleteHighlight(Highlight highlight) async {
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      await isar.highlights.delete(highlight.id!);
+    });
+  }
 }
 

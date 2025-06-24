@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
+import 'package:kindle_clone_v2/models/highlight.dart';
+import 'package:kindle_clone_v2/repositories/book_repository.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:flutter/services.dart';
 
 class PDFViewerScreen extends StatefulWidget {
   final Book bookDetail; // Can also be a URL
@@ -13,13 +16,70 @@ class PDFViewerScreen extends StatefulWidget {
 
 class _PDFViewerScreenState extends State<PDFViewerScreen> {
   String _currentSelection = '';
-  List<Rect> _highlightRects = [];
+  final BookRepository _repository = BookRepository.instance;
+  List<Highlight> _highlights = [];
   List<PdfTextRanges> _selectedRanges = [];
 
-  void _addHighlight(List<Rect> rect) {
+  @override
+  void initState() {
+    super.initState();
+    _loadHighlights();
+  }
+
+  Future<void> _loadHighlights() async {
+    if (widget.bookDetail.id != null) {
+      final items =
+          await _repository.getHighlightsForBook(widget.bookDetail);
+      setState(() {
+        _highlights = items;
+      });
+    }
+  }
+
+  Future<void> _addHighlight(int pageNumber, List<HighlightArea> rects) async {
+    final highlight = Highlight()
+      ..pageNumber = pageNumber
+      ..highlightText = _currentSelection
+      ..color = '#FFFF00'
+      ..timestamp = DateTime.now()
+      ..rects = rects;
+    await _repository.addHighlight(widget.bookDetail, highlight);
     setState(() {
-      _highlightRects.addAll(rect);
+      _highlights.add(highlight);
     });
+  }
+
+  void _onHighlightTap(Highlight highlight) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Copy'),
+              onTap: () => Navigator.pop(context, 'copy'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('Remove'),
+              onTap: () => Navigator.pop(context, 'remove'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (result == 'copy') {
+      await Clipboard.setData(
+        ClipboardData(text: highlight.highlightText),
+      );
+    } else if (result == 'remove') {
+      await _repository.deleteHighlight(highlight);
+      setState(() {
+        _highlights.removeWhere((h) => h.id == highlight.id);
+      });
+    }
   }
 
   Widget _contextMenuBuilder(
@@ -34,15 +94,21 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
         label: 'Highlight',
         onPressed: () {
           debugPrint('Highlighted text: $_currentSelection');
-          List<Rect> rect = [];
+          List<HighlightArea> rects = [];
           for (var range in _selectedRanges) {
             final singleRect = range.bounds.toRect(
               page: page,
               scaledPageSize: pageRect.size,
             );
-            rect.add(singleRect);
+            rects.add(
+              HighlightArea()
+                ..left = singleRect.left / pageRect.width
+                ..top = singleRect.top / pageRect.height
+                ..width = singleRect.width / pageRect.width
+                ..height = singleRect.height / pageRect.height,
+            );
           }
-          _addHighlight(rect);
+          _addHighlight(page.pageNumber, rects);
           selectableRegionState.hideToolbar();
         },
       ),
@@ -91,10 +157,23 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
                       ),
                   child: child,
                 ),
-                ..._highlightRects.map(
-                  (rect) => Positioned.fromRect(
-                    rect: rect,
-                    child: Container(color: Colors.yellow.withOpacity(0.4)),
+                ..._highlights
+                    .where((h) => h.pageNumber == page.pageNumber)
+                    .expand(
+                  (h) => h.rects.map(
+                    (r) => Positioned.fromRect(
+                      rect: Rect.fromLTWH(
+                        r.left * pageRect.width,
+                        r.top * pageRect.height,
+                        r.width * pageRect.width,
+                        r.height * pageRect.height,
+                      ),
+                      child: GestureDetector(
+                        onTap: () => _onHighlightTap(h),
+                        child:
+                            Container(color: Colors.yellow.withOpacity(0.4)),
+                      ),
+                    ),
                   ),
                 ),
               ],

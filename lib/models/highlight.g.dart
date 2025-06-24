@@ -37,8 +37,14 @@ const HighlightSchema = CollectionSchema(
       name: r'pageNumber',
       type: IsarType.long,
     ),
-    r'timestamp': PropertySchema(
+    r'rects': PropertySchema(
       id: 4,
+      name: r'rects',
+      type: IsarType.objectList,
+      target: r'HighlightArea',
+    ),
+    r'timestamp': PropertySchema(
+      id: 5,
       name: r'timestamp',
       type: IsarType.dateTime,
     )
@@ -57,7 +63,7 @@ const HighlightSchema = CollectionSchema(
       single: true,
     )
   },
-  embeddedSchemas: {},
+  embeddedSchemas: {r'HighlightArea': HighlightAreaSchema},
   getId: _highlightGetId,
   getLinks: _highlightGetLinks,
   attach: _highlightAttach,
@@ -79,6 +85,15 @@ int _highlightEstimateSize(
       bytesCount += value.length * 3;
     }
   }
+  bytesCount += 3 + object.rects.length * 3;
+  {
+    final offsets = allOffsets[HighlightArea]!;
+    for (var i = 0; i < object.rects.length; i++) {
+      final value = object.rects[i];
+      bytesCount +=
+          HighlightAreaSchema.estimateSize(value, offsets, allOffsets);
+    }
+  }
   return bytesCount;
 }
 
@@ -92,7 +107,13 @@ void _highlightSerialize(
   writer.writeString(offsets[1], object.highlightText);
   writer.writeStringList(offsets[2], object.notes);
   writer.writeLong(offsets[3], object.pageNumber);
-  writer.writeDateTime(offsets[4], object.timestamp);
+  writer.writeObjectList<HighlightArea>(
+    offsets[4],
+    allOffsets,
+    HighlightAreaSchema.serialize,
+    object.rects,
+  );
+  writer.writeDateTime(offsets[5], object.timestamp);
 }
 
 Highlight _highlightDeserialize(
@@ -107,7 +128,14 @@ Highlight _highlightDeserialize(
   object.id = id;
   object.notes = reader.readStringList(offsets[2]) ?? [];
   object.pageNumber = reader.readLong(offsets[3]);
-  object.timestamp = reader.readDateTime(offsets[4]);
+  object.rects = reader.readObjectList<HighlightArea>(
+        offsets[4],
+        HighlightAreaSchema.deserialize,
+        allOffsets,
+        HighlightArea(),
+      ) ??
+      [];
+  object.timestamp = reader.readDateTime(offsets[5]);
   return object;
 }
 
@@ -127,6 +155,14 @@ P _highlightDeserializeProp<P>(
     case 3:
       return (reader.readLong(offset)) as P;
     case 4:
+      return (reader.readObjectList<HighlightArea>(
+            offset,
+            HighlightAreaSchema.deserialize,
+            allOffsets,
+            HighlightArea(),
+          ) ??
+          []) as P;
+    case 5:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -834,6 +870,91 @@ extension HighlightQueryFilter
     });
   }
 
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsLengthEqualTo(
+      int length) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        length,
+        true,
+        length,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        0,
+        true,
+        0,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        0,
+        false,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        0,
+        true,
+        length,
+        include,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition>
+      rectsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        length,
+        include,
+        999999,
+        true,
+      );
+    });
+  }
+
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.listLength(
+        r'rects',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
   QueryBuilder<Highlight, Highlight, QAfterFilterCondition> timestampEqualTo(
       DateTime value) {
     return QueryBuilder.apply(this, (query) {
@@ -890,7 +1011,14 @@ extension HighlightQueryFilter
 }
 
 extension HighlightQueryObject
-    on QueryBuilder<Highlight, Highlight, QFilterCondition> {}
+    on QueryBuilder<Highlight, Highlight, QFilterCondition> {
+  QueryBuilder<Highlight, Highlight, QAfterFilterCondition> rectsElement(
+      FilterQuery<HighlightArea> q) {
+    return QueryBuilder.apply(this, (query) {
+      return query.object(q, r'rects');
+    });
+  }
+}
 
 extension HighlightQueryLinks
     on QueryBuilder<Highlight, Highlight, QFilterCondition> {
@@ -1089,9 +1217,374 @@ extension HighlightQueryProperty
     });
   }
 
+  QueryBuilder<Highlight, List<HighlightArea>, QQueryOperations>
+      rectsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'rects');
+    });
+  }
+
   QueryBuilder<Highlight, DateTime, QQueryOperations> timestampProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'timestamp');
     });
   }
 }
+
+// **************************************************************************
+// IsarEmbeddedGenerator
+// **************************************************************************
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
+const HighlightAreaSchema = Schema(
+  name: r'HighlightArea',
+  id: -9177001324946030200,
+  properties: {
+    r'height': PropertySchema(
+      id: 0,
+      name: r'height',
+      type: IsarType.double,
+    ),
+    r'left': PropertySchema(
+      id: 1,
+      name: r'left',
+      type: IsarType.double,
+    ),
+    r'top': PropertySchema(
+      id: 2,
+      name: r'top',
+      type: IsarType.double,
+    ),
+    r'width': PropertySchema(
+      id: 3,
+      name: r'width',
+      type: IsarType.double,
+    )
+  },
+  estimateSize: _highlightAreaEstimateSize,
+  serialize: _highlightAreaSerialize,
+  deserialize: _highlightAreaDeserialize,
+  deserializeProp: _highlightAreaDeserializeProp,
+);
+
+int _highlightAreaEstimateSize(
+  HighlightArea object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  return bytesCount;
+}
+
+void _highlightAreaSerialize(
+  HighlightArea object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDouble(offsets[0], object.height);
+  writer.writeDouble(offsets[1], object.left);
+  writer.writeDouble(offsets[2], object.top);
+  writer.writeDouble(offsets[3], object.width);
+}
+
+HighlightArea _highlightAreaDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = HighlightArea();
+  object.height = reader.readDouble(offsets[0]);
+  object.left = reader.readDouble(offsets[1]);
+  object.top = reader.readDouble(offsets[2]);
+  object.width = reader.readDouble(offsets[3]);
+  return object;
+}
+
+P _highlightAreaDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDouble(offset)) as P;
+    case 1:
+      return (reader.readDouble(offset)) as P;
+    case 2:
+      return (reader.readDouble(offset)) as P;
+    case 3:
+      return (reader.readDouble(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+extension HighlightAreaQueryFilter
+    on QueryBuilder<HighlightArea, HighlightArea, QFilterCondition> {
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      heightEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'height',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      heightGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'height',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      heightLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'height',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      heightBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'height',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> leftEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'left',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      leftGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'left',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      leftLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'left',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> leftBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'left',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> topEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'top',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      topGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'top',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> topLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'top',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> topBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'top',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      widthEqualTo(
+    double value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'width',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      widthGreaterThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'width',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      widthLessThan(
+    double value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'width',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      widthBetween(
+    double lower,
+    double upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'width',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
+}
+
+extension HighlightAreaQueryObject
+    on QueryBuilder<HighlightArea, HighlightArea, QFilterCondition> {}
