@@ -3,6 +3,7 @@ import 'package:kindle_clone_v2/models/book.dart';
 import 'package:kindle_clone_v2/models/highlight.dart';
 import 'package:kindle_clone_v2/repositories/book_repository.dart';
 import 'package:provider/provider.dart';
+import 'package:kindle_clone_v2/screens/read_notes_page.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:flutter/services.dart';
 import 'package:kindle_clone_v2/providers/book_provider.dart';
@@ -62,24 +63,33 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   void _onHighlightTap(Highlight highlight) async {
     final result = await showModalBottomSheet<String>(
       context: context,
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.copy),
-                  title: const Text('Copy'),
-                  onTap: () => Navigator.pop(context, 'copy'),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.delete),
-                  title: const Text('Remove'),
-                  onTap: () => Navigator.pop(context, 'remove'),
-                ),
-              ],
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.copy),
+              title: const Text('Copy'),
+              onTap: () => Navigator.pop(context, 'copy'),
             ),
-          ),
+            ListTile(
+              leading: const Icon(Icons.delete),
+              title: const Text('Remove'),
+              onTap: () => Navigator.pop(context, 'remove'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.add_comment),
+              title: const Text('Add Comment'),
+              onTap: () => Navigator.pop(context, 'add'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.notes),
+              title: const Text('Read Comment'),
+              onTap: () => Navigator.pop(context, 'read'),
+            ),
+          ],
+        ),
+      ),
     );
     if (result == 'copy') {
       await Clipboard.setData(ClipboardData(text: highlight.highlightText));
@@ -88,6 +98,43 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
       setState(() {
         _highlights.removeWhere((h) => h.id == highlight.id);
       });
+    } else if (result == 'add') {
+      final controller = TextEditingController();
+      final note = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Add Comment'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(hintText: 'Enter comment'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      );
+      if (note != null && note.isNotEmpty) {
+        highlight.notes.add(note);
+        await _repository.updateHighlight(highlight);
+        setState(() {});
+      }
+    } else if (result == 'read') {
+      if (context.mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ReadNotesPage(highlight: highlight),
+          ),
+        );
+      }
     }
   }
 

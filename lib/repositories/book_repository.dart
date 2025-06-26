@@ -87,4 +87,12 @@ class BookRepository {
       await isar.highlights.delete(highlight.id!);
     });
   }
+
+  /// Update an existing [highlight] after modifying its fields.
+  Future<void> updateHighlight(Highlight highlight) async {
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      await isar.highlights.put(highlight);
+    });
+  }
 }
