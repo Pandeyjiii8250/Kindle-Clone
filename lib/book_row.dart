@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
 import 'package:kindle_clone_v2/screens/pdf_viewer_screen.dart';
+import 'package:provider/provider.dart';
+import 'providers/book_provider.dart';
+import 'screens/edit_book_screen.dart';
+import 'screens/book_highlights_screen.dart';
 
 class BookRow extends StatelessWidget {
   final Book book;
@@ -87,20 +91,44 @@ class BookRow extends StatelessWidget {
                           color: Colors.grey.shade700,
                         ),
                       ),
-                    ],
-                    if (book.highlights.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        book.highlights.length.toString(),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
+                    ]
                   ],
                 ),
               ),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditBookScreen(book: book),
+                      ),
+                    );
+                    break;
+                  case 'highlights':
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BookHighlightsScreen(book: book),
+                      ),
+                    );
+                    break;
+                  case 'delete':
+                    context.read<BookProvider>().deleteBook(book);
+                    break;
+                }
+              },
+              itemBuilder:
+                  (context) => const [
+                    PopupMenuItem(value: 'edit', child: Text('Edit details')),
+                    PopupMenuItem(
+                      value: 'highlights',
+                      child: Text('Show highlights'),
+                    ),
+                    PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  ],
             ),
           ],
         ),

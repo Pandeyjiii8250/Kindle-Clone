@@ -22,10 +22,11 @@ class BookRepository {
 
   Future<Isar> _initDb() async {
     final Directory dir = await getApplicationDocumentsDirectory();
-    return Isar.open(
-      [BookSchema, HighlightSchema, ThoughtSchema],
-      directory: dir.path,
-    );
+    return Isar.open([
+      BookSchema,
+      HighlightSchema,
+      ThoughtSchema,
+    ], directory: dir.path);
   }
 
   /// Fetch all books stored in the database.
@@ -39,6 +40,23 @@ class BookRepository {
     final isar = await _isar;
     await isar.writeTxn(() async {
       await isar.books.put(book);
+    });
+  }
+
+  /// Update an existing [book] in the database.
+  Future<void> updateBook(Book book) async {
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      await isar.books.put(book);
+    });
+  }
+
+  /// Remove [book] from the database.
+  Future<void> deleteBook(Book book) async {
+    if (book.id == null) return;
+    final isar = await _isar;
+    await isar.writeTxn(() async {
+      await isar.books.delete(book.id!);
     });
   }
 
@@ -56,7 +74,10 @@ class BookRepository {
   Future<List<Highlight>> getHighlightsForBook(Book book) async {
     final isar = await _isar;
     if (book.id == null) return [];
-    return isar.highlights.filter().book((q) => q.idEqualTo(book.id!)).findAll();
+    return isar.highlights
+        .filter()
+        .book((q) => q.idEqualTo(book.id!))
+        .findAll();
   }
 
   /// Delete the given [highlight].
@@ -67,4 +88,3 @@ class BookRepository {
     });
   }
 }
-
