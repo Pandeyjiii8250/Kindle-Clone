@@ -91,17 +91,7 @@ class BookRow extends StatelessWidget {
                           color: Colors.grey.shade700,
                         ),
                       ),
-                    ],
-                    if (book.highlights.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        book.highlights.length.toString(),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
+                    ]
                   ],
                 ),
               ),
