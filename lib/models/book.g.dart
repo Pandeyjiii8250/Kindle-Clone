@@ -32,13 +32,18 @@ const BookSchema = CollectionSchema(
       name: r'filePath',
       type: IsarType.string,
     ),
-    r'progress': PropertySchema(
+    r'lastRead': PropertySchema(
       id: 3,
+      name: r'lastRead',
+      type: IsarType.dateTime,
+    ),
+    r'progress': PropertySchema(
+      id: 4,
       name: r'progress',
       type: IsarType.double,
     ),
     r'title': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'title',
       type: IsarType.string,
     )
@@ -106,8 +111,9 @@ void _bookSerialize(
   writer.writeString(offsets[0], object.author);
   writer.writeString(offsets[1], object.coverTitle);
   writer.writeString(offsets[2], object.filePath);
-  writer.writeDouble(offsets[3], object.progress);
-  writer.writeString(offsets[4], object.title);
+  writer.writeDateTime(offsets[3], object.lastRead);
+  writer.writeDouble(offsets[4], object.progress);
+  writer.writeString(offsets[5], object.title);
 }
 
 Book _bookDeserialize(
@@ -121,8 +127,9 @@ Book _bookDeserialize(
   object.coverTitle = reader.readString(offsets[1]);
   object.filePath = reader.readString(offsets[2]);
   object.id = id;
-  object.progress = reader.readDouble(offsets[3]);
-  object.title = reader.readString(offsets[4]);
+  object.lastRead = reader.readDateTimeOrNull(offsets[3]);
+  object.progress = reader.readDouble(offsets[4]);
+  object.title = reader.readString(offsets[5]);
   return object;
 }
 
@@ -140,8 +147,10 @@ P _bookDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 4:
+      return (reader.readDouble(offset)) as P;
+    case 5:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -737,6 +746,75 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastRead',
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastRead',
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastRead',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterFilterCondition> progressEqualTo(
     double value, {
     double epsilon = Query.epsilon,
@@ -1081,6 +1159,18 @@ extension BookQuerySortBy on QueryBuilder<Book, Book, QSortBy> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterSortBy> sortByLastRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> sortByLastReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.desc);
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterSortBy> sortByProgress() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'progress', Sort.asc);
@@ -1155,6 +1245,18 @@ extension BookQuerySortThenBy on QueryBuilder<Book, Book, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterSortBy> thenByLastRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> thenByLastReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.desc);
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterSortBy> thenByProgress() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'progress', Sort.asc);
@@ -1202,6 +1304,12 @@ extension BookQueryWhereDistinct on QueryBuilder<Book, Book, QDistinct> {
     });
   }
 
+  QueryBuilder<Book, Book, QDistinct> distinctByLastRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastRead');
+    });
+  }
+
   QueryBuilder<Book, Book, QDistinct> distinctByProgress() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'progress');
@@ -1238,6 +1346,12 @@ extension BookQueryProperty on QueryBuilder<Book, Book, QQueryProperty> {
   QueryBuilder<Book, String, QQueryOperations> filePathProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'filePath');
+    });
+  }
+
+  QueryBuilder<Book, DateTime?, QQueryOperations> lastReadProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastRead');
     });
   }
 

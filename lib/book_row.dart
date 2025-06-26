@@ -8,8 +8,9 @@ import 'screens/book_highlights_screen.dart';
 
 class BookRow extends StatelessWidget {
   final Book book;
+  final bool isLastRead;
 
-  const BookRow({super.key, required this.book});
+  const BookRow({super.key, required this.book, required this.isLastRead});
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +76,7 @@ class BookRow extends StatelessWidget {
                     if (!book.progress.isNaN) ...[
                       const SizedBox(height: 8),
                       Text(
-                        book.progress.toString(),
+                        '${(book.progress * 100).toStringAsFixed(0)}%',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
@@ -84,12 +85,7 @@ class BookRow extends StatelessWidget {
                       const SizedBox(height: 4),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: book.progress,
-                          minHeight: 4,
-                          backgroundColor: Colors.grey.shade300,
-                          color: Colors.grey.shade700,
-                        ),
+                        child: _buildProgressBar(),
                       ),
                     ]
                   ],
@@ -137,6 +133,35 @@ class BookRow extends StatelessWidget {
           child: Divider(height: 1, thickness: 0.5),
         ),
       ],
+    );
+  }
+
+  Widget _buildProgressBar() {
+    final bar = LinearProgressIndicator(
+      value: book.progress,
+      minHeight: 4,
+      backgroundColor: Colors.grey.shade300,
+      color: Colors.grey.shade700,
+    );
+
+    if (!isLastRead) {
+      return bar;
+    }
+
+    return ShaderMask(
+      shaderCallback: (rect) => const LinearGradient(
+        colors: [
+          Colors.red,
+          Colors.orange,
+          Colors.yellow,
+          Colors.green,
+          Colors.blue,
+          Colors.indigo,
+          Colors.purple,
+        ],
+      ).createShader(rect),
+      blendMode: BlendMode.srcIn,
+      child: bar,
     );
   }
 }

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
 import 'package:kindle_clone_v2/models/highlight.dart';
 import 'package:kindle_clone_v2/repositories/book_repository.dart';
+import 'package:provider/provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:flutter/services.dart';
+import 'package:kindle_clone_v2/providers/book_provider.dart';
 
 class PDFViewerScreen extends StatefulWidget {
   final Book bookDetail; // Can also be a URL
@@ -29,6 +31,8 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   void initState() {
     super.initState();
     _loadHighlights();
+    widget.bookDetail.lastRead = DateTime.now();
+    context.read<BookProvider>().updateBook(widget.bookDetail);
   }
 
   Future<void> _loadHighlights() async {

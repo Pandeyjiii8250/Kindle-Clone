@@ -15,6 +15,7 @@ class Book {
   late String coverTitle;
   late String author;
   late double progress;
+  DateTime? lastRead;
   String filePath = '';
 
   // One-to-many relationships
