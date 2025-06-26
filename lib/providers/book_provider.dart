@@ -23,4 +23,21 @@ class BookProvider extends ChangeNotifier {
     _books.add(book);
     notifyListeners();
   }
+
+  /// Update [book] in the repository and local cache.
+  Future<void> updateBook(Book book) async {
+    await _repository.updateBook(book);
+    final index = _books.indexWhere((b) => b.id == book.id);
+    if (index != -1) {
+      _books[index] = book;
+    }
+    notifyListeners();
+  }
+
+  /// Delete [book] from the repository and local cache.
+  Future<void> deleteBook(Book book) async {
+    await _repository.deleteBook(book);
+    _books.removeWhere((b) => b.id == book.id);
+    notifyListeners();
+  }
 }
