@@ -110,6 +110,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
           }
           _addHighlight(page.pageNumber, rects);
           selectableRegionState.hideToolbar();
+          selectableRegionState.clearSelection();
         },
       ),
     ];
@@ -131,6 +132,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
       final buffer = StringBuffer();
       for (final range in selections) {
         debugPrint('Selected on page ${range.pageNumber}: ${range.text}');
+        buffer.write(range.text);
       }
       _currentSelection = buffer.toString();
     }
