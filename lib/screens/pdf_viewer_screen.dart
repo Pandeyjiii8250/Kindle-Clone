@@ -122,7 +122,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
         ),
       );
       if (note != null && note.isNotEmpty) {
-        highlight.notes.add(note);
+        highlight.notes = [...highlight.notes, note];
         await _repository.updateHighlight(highlight);
         setState(() {});
       }
