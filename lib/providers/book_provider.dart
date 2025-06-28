@@ -11,9 +11,18 @@ class BookProvider extends ChangeNotifier {
   List<Book> _books = [];
   List<Book> get books => List.unmodifiable(_books);
 
+  void _sortBooks() {
+    _books.sort((a, b) {
+      final aTime = a.lastRead ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bTime = b.lastRead ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return bTime.compareTo(aTime);
+    });
+  }
+
   /// Load books from the repository into memory.
   Future<void> loadBooks() async {
     _books = await _repository.getAllBooks();
+    _sortBooks();
     notifyListeners();
   }
 
@@ -21,6 +30,7 @@ class BookProvider extends ChangeNotifier {
   Future<void> addBook(Book book) async {
     await _repository.addBook(book);
     _books.add(book);
+    _sortBooks();
     notifyListeners();
   }
 
@@ -31,6 +41,7 @@ class BookProvider extends ChangeNotifier {
     if (index != -1) {
       _books[index] = book;
     }
+    _sortBooks();
     notifyListeners();
   }
 

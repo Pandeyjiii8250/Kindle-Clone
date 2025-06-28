@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
 import 'package:kindle_clone_v2/models/highlight.dart';
 import 'package:kindle_clone_v2/repositories/book_repository.dart';
+import 'package:provider/provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:flutter/services.dart';
+import 'package:kindle_clone_v2/providers/book_provider.dart';
 
 class PDFViewerScreen extends StatefulWidget {
   final Book bookDetail; // Can also be a URL
@@ -21,6 +23,7 @@ class PDFViewerScreen extends StatefulWidget {
 
 class _PDFViewerScreenState extends State<PDFViewerScreen> {
   String _currentSelection = '';
+  final PdfViewerController _controller = PdfViewerController();
   final BookRepository _repository = BookRepository.instance;
   List<Highlight> _highlights = [];
   List<PdfTextRanges> _selectedRanges = [];
@@ -29,6 +32,8 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   void initState() {
     super.initState();
     _loadHighlights();
+    widget.bookDetail.lastRead = DateTime.now();
+    context.read<BookProvider>().updateBook(widget.bookDetail);
   }
 
   Future<void> _loadHighlights() async {
@@ -147,6 +152,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.bookDetail.title)),
       body: PdfViewer.file(
+        controller: _controller,
         widget.bookDetail.filePath,
         initialPageNumber: widget.initialPage ?? 1,
         params: PdfViewerParams(
@@ -188,6 +194,18 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
             );
           },
           onTextSelectionChange: _onTextSelectionChange,
+          onPageChanged: (page) async {
+            if (page != null) {
+              if(page > widget.bookDetail.lastPageRead) {
+                widget.bookDetail.lastPageRead = page;
+                //This should update ttl page once foe each book...
+                if (widget.bookDetail.ttlPage != _controller.pageCount) {
+                  widget.bookDetail.ttlPage = _controller.pageCount;
+                }
+                context.read<BookProvider>().updateBook(widget.bookDetail);
+              }
+            }
+          },
         ),
       ),
     );

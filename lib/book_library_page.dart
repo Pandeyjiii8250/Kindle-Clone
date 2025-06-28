@@ -57,9 +57,11 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
         final newBook = Book()
           ..coverTitle = 'PDF'
           ..title = fileName
-          ..author = 'Uploaded PDF'
+          ..author = 'Unknown'
           ..filePath = newFilePath
-          ..progress = 0.0;
+          ..lastPageRead = 0
+          ..ttlPage = 1
+          ..lastRead = DateTime.now();
 
         await context.read<BookProvider>().addBook(newBook);
         print('Book added: $newBook');
@@ -101,8 +103,19 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
               const SizedBox(height: 8),
 
               // Render the list of books from the provider
-              for (final book in context.watch<BookProvider>().books)
-                BookRow(book: book),
+              Builder(
+                builder: (context) {
+                  final books = context.watch<BookProvider>().books;
+                  return Column(
+                    children: List.generate(
+                      books.length,
+                      (index) => BookRow(
+                        book: books[index],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ],
           ),
         ),

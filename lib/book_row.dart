@@ -72,23 +72,13 @@ class BookRow extends StatelessWidget {
                         color: Colors.black54,
                       ),
                     ),
-                    if (!book.progress.isNaN) ...[
+                    if (!book.lastPageRead.isNaN) ...[
                       const SizedBox(height: 8),
                       Text(
-                        book.progress.toString(),
+                        '${((book.lastPageRead / book.ttlPage) * 100).toStringAsFixed(0)}% completed',
                         style: const TextStyle(
                           fontSize: 13,
                           color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: book.progress,
-                          minHeight: 4,
-                          backgroundColor: Colors.grey.shade300,
-                          color: Colors.grey.shade700,
                         ),
                       ),
                     ]

@@ -32,15 +32,25 @@ const BookSchema = CollectionSchema(
       name: r'filePath',
       type: IsarType.string,
     ),
-    r'progress': PropertySchema(
+    r'lastPageRead': PropertySchema(
       id: 3,
-      name: r'progress',
-      type: IsarType.double,
+      name: r'lastPageRead',
+      type: IsarType.long,
+    ),
+    r'lastRead': PropertySchema(
+      id: 4,
+      name: r'lastRead',
+      type: IsarType.dateTime,
     ),
     r'title': PropertySchema(
-      id: 4,
+      id: 5,
       name: r'title',
       type: IsarType.string,
+    ),
+    r'ttlPage': PropertySchema(
+      id: 6,
+      name: r'ttlPage',
+      type: IsarType.long,
     )
   },
   estimateSize: _bookEstimateSize,
@@ -106,8 +116,10 @@ void _bookSerialize(
   writer.writeString(offsets[0], object.author);
   writer.writeString(offsets[1], object.coverTitle);
   writer.writeString(offsets[2], object.filePath);
-  writer.writeDouble(offsets[3], object.progress);
-  writer.writeString(offsets[4], object.title);
+  writer.writeLong(offsets[3], object.lastPageRead);
+  writer.writeDateTime(offsets[4], object.lastRead);
+  writer.writeString(offsets[5], object.title);
+  writer.writeLong(offsets[6], object.ttlPage);
 }
 
 Book _bookDeserialize(
@@ -121,8 +133,10 @@ Book _bookDeserialize(
   object.coverTitle = reader.readString(offsets[1]);
   object.filePath = reader.readString(offsets[2]);
   object.id = id;
-  object.progress = reader.readDouble(offsets[3]);
-  object.title = reader.readString(offsets[4]);
+  object.lastPageRead = reader.readLong(offsets[3]);
+  object.lastRead = reader.readDateTimeOrNull(offsets[4]);
+  object.title = reader.readString(offsets[5]);
+  object.ttlPage = reader.readLong(offsets[6]);
   return object;
 }
 
@@ -140,9 +154,13 @@ P _bookDeserializeProp<P>(
     case 2:
       return (reader.readString(offset)) as P;
     case 3:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 4:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 5:
       return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -737,64 +755,124 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Book, Book, QAfterFilterCondition> progressEqualTo(
-    double value, {
-    double epsilon = Query.epsilon,
-  }) {
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastPageReadEqualTo(
+      int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'progress',
+        property: r'lastPageRead',
         value: value,
-        epsilon: epsilon,
       ));
     });
   }
 
-  QueryBuilder<Book, Book, QAfterFilterCondition> progressGreaterThan(
-    double value, {
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastPageReadGreaterThan(
+    int value, {
     bool include = false,
-    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
-        property: r'progress',
+        property: r'lastPageRead',
         value: value,
-        epsilon: epsilon,
       ));
     });
   }
 
-  QueryBuilder<Book, Book, QAfterFilterCondition> progressLessThan(
-    double value, {
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastPageReadLessThan(
+    int value, {
     bool include = false,
-    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
-        property: r'progress',
+        property: r'lastPageRead',
         value: value,
-        epsilon: epsilon,
       ));
     });
   }
 
-  QueryBuilder<Book, Book, QAfterFilterCondition> progressBetween(
-    double lower,
-    double upper, {
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastPageReadBetween(
+    int lower,
+    int upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    double epsilon = Query.epsilon,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
-        property: r'progress',
+        property: r'lastPageRead',
         lower: lower,
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'lastRead',
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'lastRead',
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadEqualTo(
+      DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'lastRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'lastRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'lastRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> lastReadBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'lastRead',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -923,6 +1001,58 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'title',
         value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> ttlPageEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'ttlPage',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> ttlPageGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'ttlPage',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> ttlPageLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'ttlPage',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> ttlPageBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'ttlPage',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
       ));
     });
   }
@@ -1081,15 +1211,27 @@ extension BookQuerySortBy on QueryBuilder<Book, Book, QSortBy> {
     });
   }
 
-  QueryBuilder<Book, Book, QAfterSortBy> sortByProgress() {
+  QueryBuilder<Book, Book, QAfterSortBy> sortByLastPageRead() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'progress', Sort.asc);
+      return query.addSortBy(r'lastPageRead', Sort.asc);
     });
   }
 
-  QueryBuilder<Book, Book, QAfterSortBy> sortByProgressDesc() {
+  QueryBuilder<Book, Book, QAfterSortBy> sortByLastPageReadDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'progress', Sort.desc);
+      return query.addSortBy(r'lastPageRead', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> sortByLastRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> sortByLastReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.desc);
     });
   }
 
@@ -1102,6 +1244,18 @@ extension BookQuerySortBy on QueryBuilder<Book, Book, QSortBy> {
   QueryBuilder<Book, Book, QAfterSortBy> sortByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> sortByTtlPage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ttlPage', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> sortByTtlPageDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ttlPage', Sort.desc);
     });
   }
 }
@@ -1155,15 +1309,27 @@ extension BookQuerySortThenBy on QueryBuilder<Book, Book, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Book, Book, QAfterSortBy> thenByProgress() {
+  QueryBuilder<Book, Book, QAfterSortBy> thenByLastPageRead() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'progress', Sort.asc);
+      return query.addSortBy(r'lastPageRead', Sort.asc);
     });
   }
 
-  QueryBuilder<Book, Book, QAfterSortBy> thenByProgressDesc() {
+  QueryBuilder<Book, Book, QAfterSortBy> thenByLastPageReadDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'progress', Sort.desc);
+      return query.addSortBy(r'lastPageRead', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> thenByLastRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> thenByLastReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'lastRead', Sort.desc);
     });
   }
 
@@ -1176,6 +1342,18 @@ extension BookQuerySortThenBy on QueryBuilder<Book, Book, QSortThenBy> {
   QueryBuilder<Book, Book, QAfterSortBy> thenByTitleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> thenByTtlPage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ttlPage', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> thenByTtlPageDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'ttlPage', Sort.desc);
     });
   }
 }
@@ -1202,9 +1380,15 @@ extension BookQueryWhereDistinct on QueryBuilder<Book, Book, QDistinct> {
     });
   }
 
-  QueryBuilder<Book, Book, QDistinct> distinctByProgress() {
+  QueryBuilder<Book, Book, QDistinct> distinctByLastPageRead() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'progress');
+      return query.addDistinctBy(r'lastPageRead');
+    });
+  }
+
+  QueryBuilder<Book, Book, QDistinct> distinctByLastRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'lastRead');
     });
   }
 
@@ -1212,6 +1396,12 @@ extension BookQueryWhereDistinct on QueryBuilder<Book, Book, QDistinct> {
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Book, Book, QDistinct> distinctByTtlPage() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'ttlPage');
     });
   }
 }
@@ -1241,15 +1431,27 @@ extension BookQueryProperty on QueryBuilder<Book, Book, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Book, double, QQueryOperations> progressProperty() {
+  QueryBuilder<Book, int, QQueryOperations> lastPageReadProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'progress');
+      return query.addPropertyName(r'lastPageRead');
+    });
+  }
+
+  QueryBuilder<Book, DateTime?, QQueryOperations> lastReadProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'lastRead');
     });
   }
 
   QueryBuilder<Book, String, QQueryOperations> titleProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'title');
+    });
+  }
+
+  QueryBuilder<Book, int, QQueryOperations> ttlPageProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'ttlPage');
     });
   }
 }
