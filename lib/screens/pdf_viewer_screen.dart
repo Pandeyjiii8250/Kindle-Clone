@@ -23,6 +23,7 @@ class PDFViewerScreen extends StatefulWidget {
 
 class _PDFViewerScreenState extends State<PDFViewerScreen> {
   String _currentSelection = '';
+  final PdfViewerController _controller = PdfViewerController();
   final BookRepository _repository = BookRepository.instance;
   List<Highlight> _highlights = [];
   List<PdfTextRanges> _selectedRanges = [];
@@ -151,6 +152,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.bookDetail.title)),
       body: PdfViewer.file(
+        controller: _controller,
         widget.bookDetail.filePath,
         initialPageNumber: widget.initialPage ?? 1,
         params: PdfViewerParams(
@@ -192,6 +194,18 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
             );
           },
           onTextSelectionChange: _onTextSelectionChange,
+          onPageChanged: (page) async {
+            if (page != null) {
+              if(page > widget.bookDetail.lastPageRead) {
+                widget.bookDetail.lastPageRead = page;
+                //This should update ttl page once foe each book...
+                if (widget.bookDetail.ttlPage != _controller.pageCount) {
+                  widget.bookDetail.ttlPage = _controller.pageCount;
+                }
+                context.read<BookProvider>().updateBook(widget.bookDetail);
+              }
+            }
+          },
         ),
       ),
     );

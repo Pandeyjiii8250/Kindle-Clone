@@ -57,9 +57,10 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
         final newBook = Book()
           ..coverTitle = 'PDF'
           ..title = fileName
-          ..author = 'Uploaded PDF'
+          ..author = 'Unknown'
           ..filePath = newFilePath
-          ..progress = 0.0
+          ..lastPageRead = 0
+          ..ttlPage = 1
           ..lastRead = DateTime.now();
 
         await context.read<BookProvider>().addBook(newBook);
@@ -110,7 +111,6 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
                       books.length,
                       (index) => BookRow(
                         book: books[index],
-                        isLastRead: index == 0,
                       ),
                     ),
                   );
