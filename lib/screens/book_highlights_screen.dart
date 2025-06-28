@@ -16,6 +16,7 @@ class BookHighlightsScreen extends StatefulWidget {
 class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
   final BookRepository _repository = BookRepository.instance;
   List<Highlight> _highlights = [];
+  final Map<int?, bool> _showComments = {};
 
   @override
   void initState() {
@@ -27,6 +28,7 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
     final items = await _repository.getHighlightsForBook(widget.book);
     setState(() {
       _highlights = items;
+      _showComments.clear();
     });
   }
 
@@ -51,10 +53,38 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
         itemCount: _highlights.length,
         itemBuilder: (context, index) {
           final h = _highlights[index];
-          return ListTile(
-            title: Text(h.highlightText),
-            subtitle: Text('Page ${h.pageNumber}'),
-            onTap: () => _openHighlight(h),
+          final show = _showComments[h.id] ?? false;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                title: Text(h.highlightText),
+                subtitle: Text('Page ${h.pageNumber}'),
+                onTap: () => _openHighlight(h),
+                trailing: IconButton(
+                  icon: Icon(show ? Icons.comment : Icons.comment_outlined),
+                  onPressed: () {
+                    setState(() {
+                      _showComments[h.id] = !show;
+                    });
+                  },
+                ),
+              ),
+              if (show)
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: h.notes
+                        .map((note) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Text('- $note'),
+                            ))
+                        .toList(),
+                  ),
+                ),
+              const Divider(height: 1),
+            ],
           );
         },
       ),
