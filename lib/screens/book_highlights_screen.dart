@@ -46,14 +46,25 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Highlights')),
+      appBar: AppBar(
+        title: Text(
+          'Highlights',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      ),
       body: ListView.builder(
         itemCount: _highlights.length,
         itemBuilder: (context, index) {
           final h = _highlights[index];
           return ListTile(
-            title: Text(h.highlightText),
-            subtitle: Text('Page ${h.pageNumber}'),
+            title: Text(
+              h.highlightText,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            subtitle: Text(
+              'Page ${h.pageNumber}',
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
             onTap: () => _openHighlight(h),
           );
         },

@@ -9,7 +9,9 @@ class ReadNotesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Notes')),
+      appBar: AppBar(
+        title: Text('Notes', style: Theme.of(context).textTheme.titleLarge),
+      ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: highlight.notes.length,
@@ -17,7 +19,7 @@ class ReadNotesPage extends StatelessWidget {
           final note = highlight.notes[index];
           return ListTile(
             leading: const Icon(Icons.note),
-            title: Text(note),
+            title: Text(note, style: Theme.of(context).textTheme.bodyMedium),
           );
         },
       ),

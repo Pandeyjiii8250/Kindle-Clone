@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'book_library_page.dart';
 import 'providers/book_provider.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,9 +22,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'My Book App',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      theme: AppTheme.theme,
       // Use BookLibraryPage as your home screen
       home: const BookLibraryPage(),
     );
