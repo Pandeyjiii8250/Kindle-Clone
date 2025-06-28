@@ -40,7 +40,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Book')),
+      appBar: AppBar(
+        title: Text('Edit Book', style: Theme.of(context).textTheme.titleLarge),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

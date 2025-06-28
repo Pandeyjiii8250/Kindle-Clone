@@ -31,7 +31,9 @@ class BookRow extends StatelessWidget {
               child: Text(
                 book.coverTitle,
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10, color: Colors.black54),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelSmall?.copyWith(color: Colors.black54),
               ),
             ),
             const SizedBox(width: 16),
@@ -59,29 +61,20 @@ class BookRow extends StatelessWidget {
                   children: [
                     Text(
                       book.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       book.author,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
                     if (!book.lastPageRead.isNaN) ...[
                       const SizedBox(height: 8),
                       Text(
                         '${((book.lastPageRead / book.ttlPage) * 100).toStringAsFixed(0)}% completed',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ),

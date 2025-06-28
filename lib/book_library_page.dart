@@ -16,7 +16,6 @@ class BookLibraryPage extends StatefulWidget {
 }
 
 class _BookLibraryPageState extends State<BookLibraryPage> {
-
   @override
   void initState() {
     super.initState();
@@ -25,7 +24,6 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
       context.read<BookProvider>().loadBooks();
     });
   }
-
 
   /// Picks a PDF, saves it internally, and adds it to the books list
   Future<void> _pickAndSavePdf() async {
@@ -54,22 +52,23 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
         await file.writeAsBytes(fileBytes);
 
         // Once saved, create a new Book for it
-        final newBook = Book()
-          ..coverTitle = 'PDF'
-          ..title = fileName
-          ..author = 'Unknown'
-          ..filePath = newFilePath
-          ..lastPageRead = 0
-          ..ttlPage = 1
-          ..lastRead = DateTime.now();
+        final newBook =
+            Book()
+              ..coverTitle = 'PDF'
+              ..title = fileName
+              ..author = 'Unknown'
+              ..filePath = newFilePath
+              ..lastPageRead = 0
+              ..ttlPage = 1
+              ..lastRead = DateTime.now();
 
         await context.read<BookProvider>().addBook(newBook);
         print('Book added: $newBook');
 
         // Display a quick notification
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('PDF saved at $newFilePath')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('PDF saved at $newFilePath')));
       }
     }
   }
@@ -87,12 +86,9 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'My Library',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   IconButton(
                     icon: const Icon(Icons.add),
@@ -109,9 +105,7 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
                   return Column(
                     children: List.generate(
                       books.length,
-                      (index) => BookRow(
-                        book: books[index],
-                      ),
+                      (index) => BookRow(book: books[index]),
                     ),
                   );
                 },
