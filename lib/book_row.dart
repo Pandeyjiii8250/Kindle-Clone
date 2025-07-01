@@ -1,15 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
 import 'package:kindle_clone_v2/screens/pdf_viewer_screen.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'package:provider/provider.dart';
 import 'providers/book_provider.dart';
 import 'screens/edit_book_screen.dart';
 import 'screens/book_highlights_screen.dart';
 
-class BookRow extends StatelessWidget {
+class BookRow extends StatefulWidget {
   final Book book;
 
   const BookRow({super.key, required this.book});
+
+  @override
+  State<BookRow> createState() => _BookRowState();
+}
+
+class _BookRowState extends State<BookRow> {
+  PdfPageView? _firstPage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFirstPage();
+  }
+
+  Future<void> _loadFirstPage() async {
+    final doc = await PdfDocument.openFile(widget.book.filePath);
+    final firstPage = PdfPageView(document: doc, pageNumber: 1);
+    setState(() {
+      _firstPage = firstPage;
+    });
+    //TODO: Understand how and when to dispose?
+    doc.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,21 +52,25 @@ class BookRow extends StatelessWidget {
                 color: Colors.grey.shade300,
               ),
               alignment: Alignment.center,
-              child: Text(
-                book.coverTitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 10, color: Colors.black54),
-              ),
+              child:
+                  _firstPage ?? Text(
+                        widget.book.coverTitle,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelSmall?.copyWith(color: Colors.black54),
+                      ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  if (book.filePath.isNotEmpty) {
+                  if (widget.book.filePath.isNotEmpty) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => PDFViewerScreen(bookDetail: book),
+                        builder:
+                            (_) => PDFViewerScreen(bookDetail: widget.book),
                       ),
                     );
                     // OpenFilex.open(book.filePath);
@@ -58,30 +86,21 @@ class BookRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      book.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      widget.book.title,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      book.author,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black54,
-                      ),
+                      widget.book.author,
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    if (!book.lastPageRead.isNaN) ...[
+                    if (!widget.book.lastPageRead.isNaN) ...[
                       const SizedBox(height: 8),
                       Text(
-                        '${((book.lastPageRead / book.ttlPage) * 100).toStringAsFixed(0)}% completed',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
-                        ),
+                        '${((widget.book.lastPageRead / widget.book.ttlPage) * 100).toStringAsFixed(0)}% completed',
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
-                    ]
+                    ],
                   ],
                 ),
               ),
@@ -93,7 +112,7 @@ class BookRow extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => EditBookScreen(book: book),
+                        builder: (_) => EditBookScreen(book: widget.book),
                       ),
                     );
                     break;
@@ -101,12 +120,12 @@ class BookRow extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => BookHighlightsScreen(book: book),
+                        builder: (_) => BookHighlightsScreen(book: widget.book),
                       ),
                     );
                     break;
                   case 'delete':
-                    context.read<BookProvider>().deleteBook(book);
+                    context.read<BookProvider>().deleteBook(widget.book);
                     break;
                 }
               },

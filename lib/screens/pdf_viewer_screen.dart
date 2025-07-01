@@ -63,33 +63,34 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   void _onHighlightTap(Highlight highlight) async {
     final result = await showModalBottomSheet<String>(
       context: context,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.copy),
-              title: const Text('Copy'),
-              onTap: () => Navigator.pop(context, 'copy'),
+      builder:
+          (context) => SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.copy),
+                  title: const Text('Copy'),
+                  onTap: () => Navigator.pop(context, 'copy'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.delete),
+                  title: const Text('Remove'),
+                  onTap: () => Navigator.pop(context, 'remove'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.add_comment),
+                  title: const Text('Add Comment'),
+                  onTap: () => Navigator.pop(context, 'add'),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.notes),
+                  title: const Text('Read Comment'),
+                  onTap: () => Navigator.pop(context, 'read'),
+                ),
+              ],
             ),
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Remove'),
-              onTap: () => Navigator.pop(context, 'remove'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.add_comment),
-              title: const Text('Add Comment'),
-              onTap: () => Navigator.pop(context, 'add'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.notes),
-              title: const Text('Read Comment'),
-              onTap: () => Navigator.pop(context, 'read'),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
     if (result == 'copy') {
       await Clipboard.setData(ClipboardData(text: highlight.highlightText));
@@ -102,24 +103,25 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
       final controller = TextEditingController();
       final note = await showDialog<String>(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Add Comment'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: 'Enter comment'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+        builder:
+            (ctx) => AlertDialog(
+              title: const Text('Add Comment'),
+              content: TextField(
+                controller: controller,
+                autofocus: true,
+                decoration: const InputDecoration(hintText: 'Enter comment'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+                  child: const Text('Save'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-              child: const Text('Save'),
-            ),
-          ],
-        ),
       );
       if (note != null && note.isNotEmpty) {
         highlight.notes = [...highlight.notes, note];
@@ -197,7 +199,12 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.bookDetail.title)),
+      appBar: AppBar(
+        title: Text(
+          widget.bookDetail.title,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+      ),
       body: PdfViewer.file(
         controller: _controller,
         widget.bookDetail.filePath,
@@ -243,7 +250,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
           onTextSelectionChange: _onTextSelectionChange,
           onPageChanged: (page) async {
             if (page != null) {
-              if(page > widget.bookDetail.lastPageRead) {
+              if (page > widget.bookDetail.lastPageRead) {
                 widget.bookDetail.lastPageRead = page;
                 //This should update ttl page once foe each book...
                 if (widget.bookDetail.ttlPage != _controller.pageCount) {
