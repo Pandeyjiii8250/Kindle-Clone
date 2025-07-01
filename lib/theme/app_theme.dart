@@ -11,9 +11,10 @@ class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: _bgColor,
       colorScheme: base.colorScheme.copyWith(
-        background: _bgColor,
-        onBackground: _headingColor,
+        surface: _bgColor,
+        onSurface: _headingColor,
       ),
+      popupMenuTheme: PopupMenuThemeData(color: _bgColor),
       textTheme: _textTheme,
     );
   }
