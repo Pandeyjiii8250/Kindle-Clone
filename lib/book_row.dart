@@ -32,7 +32,7 @@ class _BookRowState extends State<BookRow> {
       _firstPage = firstPage;
     });
     //TODO: Understand how and when to dispose?
-    doc.dispose();
+    // doc.dispose();
   }
 
   @override

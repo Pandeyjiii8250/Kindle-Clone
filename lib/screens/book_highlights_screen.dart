@@ -33,7 +33,7 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
     setState(() {
       _firstPage = first;
     });
-    doc.dispose();
+    // doc.dispose();
   }
 
   Future<void> _loadHighlights() async {
@@ -41,6 +41,7 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
     setState(() {
       _highlights = items;
     });
+    // print(items.);
   }
 
   void _openHighlight(Highlight h) {
@@ -70,13 +71,14 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
               color: Colors.grey.shade300,
             ),
             alignment: Alignment.center,
-            child: _firstPage ?? Text(
+            child:
+                _firstPage ??
+                Text(
                   widget.book.coverTitle,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
-                      ?.copyWith(color: Colors.black54),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(color: Colors.black54),
                 ),
           ),
           const SizedBox(width: 16),
@@ -113,7 +115,7 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
       body: Column(
         children: [
           _buildBookInfo(),
-          const Divider(height: 1, thickness: 0.5),
+          // const Divider(height: 1, thickness: 0.5),
           Expanded(
             child: ListView.builder(
               itemCount: _highlights.length,
@@ -145,6 +147,12 @@ class _HighlightTile extends StatefulWidget {
 class _HighlightTileState extends State<_HighlightTile> {
   bool _expanded = false;
 
+  String _transformHighlight(String text) {
+    return text.replaceAll('\r', '').replaceAll('\n', ' ');
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     final h = widget.highlight;
@@ -154,23 +162,32 @@ class _HighlightTileState extends State<_HighlightTile> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: _expanded ? CrossAxisAlignment.start : CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: GestureDetector(
                   onTap: widget.onOpen,
                   child: Text(
-                    h.highlightText,
+                    _transformHighlight(h.highlightText),
+                    textAlign: TextAlign.justify,
                     maxLines: _expanded ? null : 1,
                     overflow:
-                        _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                        _expanded
+                            ? TextOverflow.visible
+                            : TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
               ),
               IconButton(
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints(),
                 icon: Icon(
-                    _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
+                  size: 30,
+                  _expanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                ),
                 onPressed: () {
                   setState(() {
                     _expanded = !_expanded;
@@ -182,26 +199,34 @@ class _HighlightTileState extends State<_HighlightTile> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child:
-              Text('Page ${h.pageNumber}', style: Theme.of(context).textTheme.labelSmall),
+          child: Text(
+            'Page ${h.pageNumber}',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
         ),
         if (_expanded && h.notes.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: h.notes
-                  .map((n) => Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('\u2022 '),
-                          Expanded(
-                            child: Text(n,
-                                style: Theme.of(context).textTheme.bodyMedium),
-                          ),
-                        ],
-                      ))
-                  .toList(),
+              children:
+                  h.notes
+                      .map(
+                        (n) => Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // const Text('\u2022 '),
+                            Expanded(
+                              child: Text(
+                                n,
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.black54),
+                                textAlign: TextAlign.justify,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .toList(),
             ),
           ),
         const Padding(
