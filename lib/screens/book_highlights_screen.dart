@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../models/book.dart';
 import '../models/highlight.dart';
-import '../repositories/book_repository.dart';
+import '../providers/highlight_provider.dart';
 import 'pdf_viewer_screen.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:provider/provider.dart';
 
 class BookHighlightsScreen extends StatefulWidget {
   final Book book;
@@ -15,14 +16,14 @@ class BookHighlightsScreen extends StatefulWidget {
 }
 
 class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
-  final BookRepository _repository = BookRepository.instance;
-  List<Highlight> _highlights = [];
   PdfPageView? _firstPage;
 
   @override
   void initState() {
     super.initState();
-    _loadHighlights();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HighlightProvider>().loadHighlights(widget.book);
+    });
     _loadFirstPage();
   }
 
@@ -36,25 +37,19 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
     // doc.dispose();
   }
 
-  Future<void> _loadHighlights() async {
-    final items = await _repository.getHighlightsForBook(widget.book);
-    setState(() {
-      _highlights = items;
-    });
-    // print(items.);
-  }
-
-  void _openHighlight(Highlight h) {
-    Navigator.push(
+  Future<void> _openHighlight(Highlight h) async {
+    await Navigator.push(
       context,
       MaterialPageRoute(
-        builder:
-            (_) => PDFViewerScreen(
-              bookDetail: widget.book,
-              initialPage: h.pageNumber,
-            ),
+        builder: (_) => PDFViewerScreen(
+          bookDetail: widget.book,
+          initialPage: h.pageNumber,
+        ),
       ),
     );
+    if (context.mounted) {
+      await context.read<HighlightProvider>().loadHighlights(widget.book);
+    }
   }
 
   Widget _buildBookInfo() {
@@ -117,13 +112,18 @@ class _BookHighlightsScreenState extends State<BookHighlightsScreen> {
           _buildBookInfo(),
           // const Divider(height: 1, thickness: 0.5),
           Expanded(
-            child: ListView.builder(
-              itemCount: _highlights.length,
-              itemBuilder: (context, index) {
-                final h = _highlights[index];
-                return _HighlightTile(
-                  highlight: h,
-                  onOpen: () => _openHighlight(h),
+            child: Consumer<HighlightProvider>(
+              builder: (context, provider, _) {
+                final highlights = provider.highlightsFor(widget.book);
+                return ListView.builder(
+                  itemCount: highlights.length,
+                  itemBuilder: (context, index) {
+                    final h = highlights[index];
+                    return _HighlightTile(
+                      highlight: h,
+                      onOpen: () => _openHighlight(h),
+                    );
+                  },
                 );
               },
             ),

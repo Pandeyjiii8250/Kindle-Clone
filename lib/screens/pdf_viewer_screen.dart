@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kindle_clone_v2/models/book.dart';
 import 'package:kindle_clone_v2/models/highlight.dart';
-import 'package:kindle_clone_v2/repositories/book_repository.dart';
+import 'package:kindle_clone_v2/providers/highlight_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:kindle_clone_v2/screens/read_notes_page.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -25,25 +25,17 @@ class PDFViewerScreen extends StatefulWidget {
 class _PDFViewerScreenState extends State<PDFViewerScreen> {
   String _currentSelection = '';
   final PdfViewerController _controller = PdfViewerController();
-  final BookRepository _repository = BookRepository.instance;
-  List<Highlight> _highlights = [];
   List<PdfTextRanges> _selectedRanges = [];
+
 
   @override
   void initState() {
     super.initState();
-    _loadHighlights();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HighlightProvider>().loadHighlights(widget.bookDetail);
+    });
     widget.bookDetail.lastRead = DateTime.now();
     context.read<BookProvider>().updateBook(widget.bookDetail);
-  }
-
-  Future<void> _loadHighlights() async {
-    if (widget.bookDetail.id != null) {
-      final items = await _repository.getHighlightsForBook(widget.bookDetail);
-      setState(() {
-        _highlights = items;
-      });
-    }
   }
 
   Future<void> _addHighlight(int pageNumber, List<HighlightArea> rects) async {
@@ -54,10 +46,9 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
           ..color = '#FFFF00'
           ..timestamp = DateTime.now()
           ..rects = rects;
-    await _repository.addHighlight(widget.bookDetail, highlight);
-    setState(() {
-      _highlights.add(highlight);
-    });
+    await context
+        .read<HighlightProvider>()
+        .addHighlight(widget.bookDetail, highlight);
   }
 
   void _onHighlightTap(Highlight highlight) async {
@@ -95,10 +86,9 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
     if (result == 'copy') {
       await Clipboard.setData(ClipboardData(text: highlight.highlightText));
     } else if (result == 'remove') {
-      await _repository.deleteHighlight(highlight);
-      setState(() {
-        _highlights.removeWhere((h) => h.id == highlight.id);
-      });
+      await context
+          .read<HighlightProvider>()
+          .deleteHighlight(widget.bookDetail, highlight);
     } else if (result == 'add') {
       final controller = TextEditingController();
       final note = await showModalBottomSheet<String>(
@@ -164,8 +154,9 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
       );
       if (note != null && note.isNotEmpty) {
         highlight.notes = [...highlight.notes, note];
-        await _repository.updateHighlight(highlight);
-        setState(() {});
+        await context
+            .read<HighlightProvider>()
+            .updateHighlight(widget.bookDetail, highlight);
       }
     } else if (result == 'read') {
       if (context.mounted) {
@@ -263,7 +254,9 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
                       ),
                   child: child,
                 ),
-                ..._highlights
+                ...context
+                    .watch<HighlightProvider>()
+                    .highlightsFor(widget.bookDetail)
                     .where((h) => h.pageNumber == page.pageNumber)
                     .expand(
                       (h) => h.rects.map(
