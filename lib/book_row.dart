@@ -25,6 +25,14 @@ class _BookRowState extends State<BookRow> {
     _loadFirstPage();
   }
 
+  @override
+  void didUpdateWidget(covariant BookRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.book.id != widget.book.id) {
+      _loadFirstPage();
+    }
+  }
+
   Future<void> _loadFirstPage() async {
     final doc = await PdfDocument.openFile(widget.book.filePath);
     final firstPage = PdfPageView(document: doc, pageNumber: 1);
