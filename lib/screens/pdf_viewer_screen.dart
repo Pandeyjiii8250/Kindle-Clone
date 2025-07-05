@@ -80,12 +80,12 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
                 ),
                 ListTile(
                   leading: const Icon(Icons.add_comment),
-                  title: const Text('Add Comment'),
+                  title: const Text('Add Notes'),
                   onTap: () => Navigator.pop(context, 'add'),
                 ),
                 ListTile(
                   leading: const Icon(Icons.notes),
-                  title: const Text('Read Comment'),
+                  title: const Text('Read Notes'),
                   onTap: () => Navigator.pop(context, 'read'),
                 ),
               ],

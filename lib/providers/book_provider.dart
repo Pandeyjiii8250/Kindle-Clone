@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:kindle_clone_v2/models/highlight.dart';
 
 import '../models/book.dart';
 import '../repositories/book_repository.dart';
@@ -48,6 +49,13 @@ class BookProvider extends ChangeNotifier {
   /// Delete [book] from the repository and local cache.
   Future<void> deleteBook(Book book) async {
     await _repository.deleteBook(book);
+    _books.removeWhere((b) => b.id == book.id);
+    notifyListeners();
+  }
+
+  /// Delete [book] from the repository and local cache.
+  Future<void> addHighlight(Book book, Highlight highlight) async {
+    await _repository.addHighlight(book, highlight);
     _books.removeWhere((b) => b.id == book.id);
     notifyListeners();
   }

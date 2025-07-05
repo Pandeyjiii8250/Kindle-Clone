@@ -17,10 +17,7 @@ class ReadNotesPage extends StatelessWidget {
         itemCount: highlight.notes.length,
         itemBuilder: (context, index) {
           final note = highlight.notes[index];
-          return ListTile(
-            leading: const Icon(Icons.note),
-            title: Text(note, style: Theme.of(context).textTheme.bodyMedium),
-          );
+          return Text(note, style: Theme.of(context).textTheme.bodyMedium);
         },
       ),
     );
