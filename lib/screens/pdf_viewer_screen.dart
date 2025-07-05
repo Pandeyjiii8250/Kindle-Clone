@@ -116,12 +116,22 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextField(
-                  controller: controller,
-                  autofocus: true,
-                  maxLines: null,
-                  decoration: const InputDecoration(
-                    hintText: 'Add your notes here...',
+                SizedBox(
+                  height: 100,
+                  child: TextField(
+                    controller: controller,
+                    autofocus: true,
+                    maxLines: null,
+                    decoration: InputDecoration(
+                      hintText: 'Add your notes here...',
+                      filled: true,
+                      fillColor: const Color(0xFFEBEDF0),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.all(12),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -137,9 +147,12 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      onPressed: () =>
-                          Navigator.pop(ctx, controller.text.trim()),
+                      onPressed:
+                          () => Navigator.pop(ctx, controller.text.trim()),
                       child: const Text('Submit'),
                     ),
                   ],

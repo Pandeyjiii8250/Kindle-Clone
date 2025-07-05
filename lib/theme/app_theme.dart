@@ -15,6 +15,7 @@ class AppTheme {
         onSurface: _headingColor,
       ),
       popupMenuTheme: PopupMenuThemeData(color: _bgColor),
+      bottomSheetTheme: BottomSheetThemeData(backgroundColor: _bgColor),
       textTheme: _textTheme,
     );
   }
