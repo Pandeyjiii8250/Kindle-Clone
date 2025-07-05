@@ -3,13 +3,17 @@ import 'package:provider/provider.dart';
 
 import 'book_library_page.dart';
 import 'providers/book_provider.dart';
+import 'providers/highlight_provider.dart';
 import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => BookProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => BookProvider()),
+        ChangeNotifierProvider(create: (_) => HighlightProvider()),
+      ],
       child: const MainApp(),
     ),
   );

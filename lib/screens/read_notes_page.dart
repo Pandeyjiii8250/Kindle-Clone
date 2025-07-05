@@ -10,14 +10,28 @@ class ReadNotesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notes', style: Theme.of(context).textTheme.titleLarge),
+        title: Text(
+          'Saved Notes',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: highlight.notes.length,
         itemBuilder: (context, index) {
           final note = highlight.notes[index];
-          return Text(note, style: Theme.of(context).textTheme.bodyMedium);
+          return Column(
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.sticky_note_2_outlined, color: Colors.black),
+                  SizedBox(width: 16),
+                  Text(note, style: Theme.of(context).textTheme.titleMedium),
+                ],
+              ),
+              SizedBox(height: 22),
+            ],
+          );
         },
       ),
     );
