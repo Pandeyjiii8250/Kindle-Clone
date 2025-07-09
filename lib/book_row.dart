@@ -14,7 +14,7 @@ class BookRow extends StatelessWidget {
     if (book.filePath.isNotEmpty) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => PDFViewerScreen(bookDetail: book)),
+        MaterialPageRoute(builder: (_) => PDFViewerScreen(bookDetail: book, initialPage: book.lastPageRead,)),
       );
       // OpenFilex.open(book.filePath);
     } else {

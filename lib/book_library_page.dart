@@ -58,8 +58,6 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
               ..title = fileName
               ..author = 'Unknown'
               ..filePath = newFilePath
-              ..lastPageRead = 0
-              ..ttlPage = 1
               ..lastRead = DateTime.now();
 
         await context.read<BookProvider>().addBook(newBook);

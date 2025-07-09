@@ -30,6 +30,7 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   final PdfViewerController _controller = PdfViewerController();
   List<PdfTextRanges> _selectedRanges = [];
 
+
   @override
   void initState() {
     super.initState();

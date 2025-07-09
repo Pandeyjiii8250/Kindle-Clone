@@ -17,14 +17,13 @@ class BookDetails extends StatelessWidget {
 
         Text(book.author, style: Theme.of(context).textTheme.bodySmall),
 
-        if (!book.lastPageRead.isNaN) ...[
-          const SizedBox(height: 8),
-          Text(
-            '${((book.lastPageRead / book.ttlPage) * 100).toStringAsFixed(0)}% completed',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-
+        const SizedBox(height: 8),
+        Text(
+          book.ttlPage > 0
+              ? '${((book.lastPageRead / book.ttlPage) * 100).toStringAsFixed(0)}% completed'
+              : 'Not yet started.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       ],
     );
   }
