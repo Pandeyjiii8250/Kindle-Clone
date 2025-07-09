@@ -68,7 +68,7 @@ class _BookLibraryPageState extends State<BookLibraryPage> {
         // Display a quick notification
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('PDF saved at $newFilePath')));
+        ).showSnackBar(SnackBar(content: Text('PDF saved')));
       }
     }
   }
