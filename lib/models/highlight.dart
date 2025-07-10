@@ -34,4 +34,5 @@ class HighlightArea {
   late double top;
   late double width;
   late double height;
+  late String text;
 }

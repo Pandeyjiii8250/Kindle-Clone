@@ -1252,13 +1252,18 @@ const HighlightAreaSchema = Schema(
       name: r'left',
       type: IsarType.double,
     ),
-    r'top': PropertySchema(
+    r'text': PropertySchema(
       id: 2,
+      name: r'text',
+      type: IsarType.string,
+    ),
+    r'top': PropertySchema(
+      id: 3,
       name: r'top',
       type: IsarType.double,
     ),
     r'width': PropertySchema(
-      id: 3,
+      id: 4,
       name: r'width',
       type: IsarType.double,
     )
@@ -1275,6 +1280,7 @@ int _highlightAreaEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
+  bytesCount += 3 + object.text.length * 3;
   return bytesCount;
 }
 
@@ -1286,8 +1292,9 @@ void _highlightAreaSerialize(
 ) {
   writer.writeDouble(offsets[0], object.height);
   writer.writeDouble(offsets[1], object.left);
-  writer.writeDouble(offsets[2], object.top);
-  writer.writeDouble(offsets[3], object.width);
+  writer.writeString(offsets[2], object.text);
+  writer.writeDouble(offsets[3], object.top);
+  writer.writeDouble(offsets[4], object.width);
 }
 
 HighlightArea _highlightAreaDeserialize(
@@ -1299,8 +1306,9 @@ HighlightArea _highlightAreaDeserialize(
   final object = HighlightArea();
   object.height = reader.readDouble(offsets[0]);
   object.left = reader.readDouble(offsets[1]);
-  object.top = reader.readDouble(offsets[2]);
-  object.width = reader.readDouble(offsets[3]);
+  object.text = reader.readString(offsets[2]);
+  object.top = reader.readDouble(offsets[3]);
+  object.width = reader.readDouble(offsets[4]);
   return object;
 }
 
@@ -1316,8 +1324,10 @@ P _highlightAreaDeserializeProp<P>(
     case 1:
       return (reader.readDouble(offset)) as P;
     case 2:
-      return (reader.readDouble(offset)) as P;
+      return (reader.readString(offset)) as P;
     case 3:
+      return (reader.readDouble(offset)) as P;
+    case 4:
       return (reader.readDouble(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -1452,6 +1462,141 @@ extension HighlightAreaQueryFilter
         upper: upper,
         includeUpper: includeUpper,
         epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> textEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'text',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'text',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'text',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> textBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'text',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'text',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'text',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'text',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition> textMatches(
+      String pattern,
+      {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'text',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'text',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<HighlightArea, HighlightArea, QAfterFilterCondition>
+      textIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'text',
+        value: '',
       ));
     });
   }
