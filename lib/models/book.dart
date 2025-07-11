@@ -15,11 +15,12 @@ class Book {
   late String coverTitle;
   late String author;
 
-  late int lastPageRead;
-  late int ttlPage;
+  int lastPageRead = 1;
+  int maxPageRead = 0;
+  int ttlPage = 0;
 
   DateTime? lastRead;
-  String filePath = '';
+  late String filePath;
 
   // One-to-many relationships
   final highlights = IsarLinks<Highlight>();

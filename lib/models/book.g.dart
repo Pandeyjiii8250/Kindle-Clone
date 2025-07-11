@@ -42,13 +42,18 @@ const BookSchema = CollectionSchema(
       name: r'lastRead',
       type: IsarType.dateTime,
     ),
-    r'title': PropertySchema(
+    r'maxPageRead': PropertySchema(
       id: 5,
+      name: r'maxPageRead',
+      type: IsarType.long,
+    ),
+    r'title': PropertySchema(
+      id: 6,
       name: r'title',
       type: IsarType.string,
     ),
     r'ttlPage': PropertySchema(
-      id: 6,
+      id: 7,
       name: r'ttlPage',
       type: IsarType.long,
     )
@@ -118,8 +123,9 @@ void _bookSerialize(
   writer.writeString(offsets[2], object.filePath);
   writer.writeLong(offsets[3], object.lastPageRead);
   writer.writeDateTime(offsets[4], object.lastRead);
-  writer.writeString(offsets[5], object.title);
-  writer.writeLong(offsets[6], object.ttlPage);
+  writer.writeLong(offsets[5], object.maxPageRead);
+  writer.writeString(offsets[6], object.title);
+  writer.writeLong(offsets[7], object.ttlPage);
 }
 
 Book _bookDeserialize(
@@ -135,8 +141,9 @@ Book _bookDeserialize(
   object.id = id;
   object.lastPageRead = reader.readLong(offsets[3]);
   object.lastRead = reader.readDateTimeOrNull(offsets[4]);
-  object.title = reader.readString(offsets[5]);
-  object.ttlPage = reader.readLong(offsets[6]);
+  object.maxPageRead = reader.readLong(offsets[5]);
+  object.title = reader.readString(offsets[6]);
+  object.ttlPage = reader.readLong(offsets[7]);
   return object;
 }
 
@@ -158,8 +165,10 @@ P _bookDeserializeProp<P>(
     case 4:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -877,6 +886,59 @@ extension BookQueryFilter on QueryBuilder<Book, Book, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterFilterCondition> maxPageReadEqualTo(
+      int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'maxPageRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> maxPageReadGreaterThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'maxPageRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> maxPageReadLessThan(
+    int value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'maxPageRead',
+        value: value,
+      ));
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterFilterCondition> maxPageReadBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'maxPageRead',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+      ));
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterFilterCondition> titleEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -1235,6 +1297,18 @@ extension BookQuerySortBy on QueryBuilder<Book, Book, QSortBy> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterSortBy> sortByMaxPageRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'maxPageRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> sortByMaxPageReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'maxPageRead', Sort.desc);
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterSortBy> sortByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -1333,6 +1407,18 @@ extension BookQuerySortThenBy on QueryBuilder<Book, Book, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Book, Book, QAfterSortBy> thenByMaxPageRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'maxPageRead', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Book, Book, QAfterSortBy> thenByMaxPageReadDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'maxPageRead', Sort.desc);
+    });
+  }
+
   QueryBuilder<Book, Book, QAfterSortBy> thenByTitle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'title', Sort.asc);
@@ -1392,6 +1478,12 @@ extension BookQueryWhereDistinct on QueryBuilder<Book, Book, QDistinct> {
     });
   }
 
+  QueryBuilder<Book, Book, QDistinct> distinctByMaxPageRead() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'maxPageRead');
+    });
+  }
+
   QueryBuilder<Book, Book, QDistinct> distinctByTitle(
       {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
@@ -1440,6 +1532,12 @@ extension BookQueryProperty on QueryBuilder<Book, Book, QQueryProperty> {
   QueryBuilder<Book, DateTime?, QQueryOperations> lastReadProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastRead');
+    });
+  }
+
+  QueryBuilder<Book, int, QQueryOperations> maxPageReadProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'maxPageRead');
     });
   }
 
