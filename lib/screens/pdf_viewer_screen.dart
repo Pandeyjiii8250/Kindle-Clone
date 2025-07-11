@@ -101,18 +101,69 @@ class _PDFViewerScreenState extends State<PDFViewerScreen> {
   }
 
   Future<void> _addHighlight(int pageNumber, List<HighlightArea> rects) async {
-    final highlight =
-        Highlight()
-          ..pageNumber = pageNumber
-          ..highlightText = _currentSelection
-          ..color = '#FFFF00'
-          ..timestamp = DateTime.now()
-          ..rects = rects;
+    final provider = context.read<HighlightProvider>();
+    final existingHighlights = provider
+        .highlightsFor(widget.bookDetail)
+        .where((h) => h.pageNumber == pageNumber);
 
-    await context.read<HighlightProvider>().addHighlight(
-      widget.bookDetail,
-      highlight,
-    );
+    for (final existing in existingHighlights) {
+      if (_rectListsOverlap(existing.rects, rects)) {
+        // Merge rectangles, avoiding duplicates
+        existing.rects = _mergeRectLists(existing.rects, rects);
+
+        // Append new text if it doesn't already contain it
+        if (!existing.highlightText.contains(_currentSelection)) {
+          existing.highlightText =
+              '${existing.highlightText}\n$_currentSelection'.trim();
+        }
+
+        existing.timestamp = DateTime.now();
+        await provider.updateHighlight(widget.bookDetail, existing);
+        return;
+      }
+    }
+
+    // No overlap, add a new highlight
+    final highlight = Highlight()
+      ..pageNumber = pageNumber
+      ..highlightText = _currentSelection
+      ..color = '#FFFF00'
+      ..timestamp = DateTime.now()
+      ..rects = rects;
+
+    await provider.addHighlight(widget.bookDetail, highlight);
+  }
+
+  bool _rectListsOverlap(List<HighlightArea> a, List<HighlightArea> b) {
+    for (final r1 in a) {
+      for (final r2 in b) {
+        if (_rectsOverlap(r1, r2)) return true;
+      }
+    }
+    return false;
+  }
+
+  bool _rectsOverlap(HighlightArea a, HighlightArea b) {
+    final r1 = Rect.fromLTWH(a.left, a.top, a.width, a.height);
+    final r2 = Rect.fromLTWH(b.left, b.top, b.width, b.height);
+    return r1.overlaps(r2);
+  }
+
+  List<HighlightArea> _mergeRectLists(
+      List<HighlightArea> existing, List<HighlightArea> incoming) {
+    final merged = [...existing];
+    for (final r in incoming) {
+      final duplicate = merged.any((e) => _sameRect(e, r));
+      if (!duplicate) merged.add(r);
+    }
+    return merged;
+  }
+
+  bool _sameRect(HighlightArea a, HighlightArea b) {
+    return a.left == b.left &&
+        a.top == b.top &&
+        a.width == b.width &&
+        a.height == b.height;
   }
 
   void _onTextSelectionChange(List<PdfTextRanges> selections) {
